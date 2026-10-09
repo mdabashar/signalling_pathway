@@ -301,6 +301,7 @@ code.hash {font:12px ui-monospace,Consolas,monospace;background:var(--panel2);bo
 .event-table tbody tr {cursor:pointer;} .event-table tbody tr:hover td {background:var(--panel2);}
 .event-table tbody tr.sel td {background:var(--accent-soft);} .event-table tbody tr:last-child td {border-bottom:0;}
 .event-table tr:focus-visible {outline:3px solid var(--accent);outline-offset:-3px;}
+.card h2:has(.seg) {justify-content:flex-start;gap:10px;} .card h2 .seg {margin-left:auto;}
 .card h2 .seg {text-transform:none;letter-spacing:0;font-weight:500;} .card h2 .seg button {font-size:12px;padding:3px 12px;}
 
 /* Review flow. */
@@ -365,7 +366,7 @@ kbd {font:11px ui-monospace,Consolas,monospace;border:1px solid var(--line);bord
 </header>
 <main>
   <div class="tiles" id="tiles"></div>
-  <div id="banner"></div><div class="banner" style="margin:0 0 14px"><b>Public read-only copy</b>, built 8 October 2026. 2 of 44 statements have been accepted by a curator; the others are model predictions that have not been reviewed. Abstracts are shown only for the 16 papers with extracted statements; article body text is not included.</div>
+  <div id="banner"></div><div class="banner" style="margin:0 0 14px"><b>Public read-only copy</b>, built 9 October 2026. 2 of 44 statements have been accepted by a curator; the others are model predictions that have not been reviewed. Abstracts are shown only for the 16 papers with extracted statements; article body text is not included.</div>
   <div class="tabs" id="tabs"></div>
   <div id="view"></div>
   <footer id="footer"></footer>
@@ -768,7 +769,7 @@ function graphSvg() {
       else out+=`<text class="badge" x="435" y="${y+59}" text-anchor="middle">linked event outside current filters</text>`;
     }
   }
-  return `<div class="graph-scroll"><svg viewBox="0 0 ${W} ${H+12}" role="img" aria-label="Event graph"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs><g class="network-viewport" transform="translate(${overviewUI.x} ${overviewUI.y}) scale(${overviewUI.zoom})">${out}</g></svg><div class="canvas-hint">Drag a node to arrange · drag background to pan · scroll to zoom</div></div><div class="legend">${Object.values(TYPES).map(([n,v])=>`<span><i class="dot" style="background:var(${v})"></i>${n}</span>`).join('')}<span>solid: asserted · dashed: proposed · dotted: negated</span></div><p class="hint">Each row is one event; sites and contexts remain separate. Select a protein to filter both graph and list.</p>`;
+  return `<div class="graph-scroll"><svg viewBox="0 0 ${W} ${H+12}" role="img" aria-label="Event graph"><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs><g>${out}</g></svg></div><div class="legend">${Object.values(TYPES).map(([n,v])=>`<span><i class="dot" style="background:var(${v})"></i>${n}</span>`).join('')}<span>solid: asserted · dashed: proposed · dotted: negated</span></div><p class="hint">Each row is one event; sites and contexts remain separate. Select a protein to filter both graph and list.</p>`;
 }
 
 
@@ -1065,8 +1066,8 @@ function renderPathway() {
     <label>Search <input aria-label="Search protein, site or PMID" data-filter="search" value="${esc(state.search)}"></label>
     </div>` : '';
   return `${pathwayToolbar}<div class="grid"><div style="display:flex;flex-direction:column;gap:14px">
-      ${isReview ? `<div class="card"><h2>Review progress</h2><div class="body">${reviewProgress()}</div></div>` : table ? '' : `<div class="card"><h2>Event diagram ${viewToggle}</h2><div class="body">${graphSvg()}</div></div>`}
-      <div class="card"><h2>Events <span>${list.length}</span>${table ? viewToggle : ''}</h2><div class="body">
+      ${isReview ? `<div class="card"><h2>Review progress</h2><div class="body">${reviewProgress()}</div></div>` : ''}
+      <div class="card"><h2>Events <span>${list.length}</span>${isReview ? '' : viewToggle}</h2><div class="body">
         <div class="filters">
           ${state.tab === 'review' ? `<label>Search <input aria-label="Search protein, site or PMID" data-filter="search" value="${esc(state.search)}"></label>` : ''}
           ${`<select aria-label="Review queue filter" data-filter="review">${[['','All'],['pending','Pending'],['unassessed','Support not assessed'],['reassessment','Source needs reassessment'],['superseded','Superseded extraction'],['failed','Failed text checks'],['missing_site','Missing site'],['unclear','Unclear directness'],['unresolved','Unresolved identities/sites'],['invalid_mapping','Invalid mappings'],['accepted','Accepted'],['rejected','Rejected']].map(([v,l]) => opt(v,state.review,l)).join('')}</select>`}
@@ -1074,7 +1075,8 @@ function renderPathway() {
           <select data-filter="fact">${opt('', state.fact, 'Any factuality')}${['asserted', 'speculated', 'negated'].map(f => opt(f, state.fact, f)).join('')}</select>` : ''}
           ${chip ? `<span class="chip" data-clear="1">${esc(chip)} ✕</span>` : ''}
         </div>
-        ${table ? eventTable(list) : `<div class="list">${list.map(eventCard).join('') || '<div class="empty">No events match.</div>'}</div>`}</div></div>
+        ${table ? eventTable(list) : isReview ? `<div class="list">${list.map(eventCard).join('') || '<div class="empty">No events match.</div>'}</div>`
+          : `${graphSvg()}<details class="info-note" style="margin:14px 0 0"><summary>Show these ${list.length} events as a list</summary><div class="list" style="margin-top:10px">${list.map(eventCard).join('')}</div></details>`}</div></div>
     </div>
     <div class="card" style="position:sticky;top:12px"><h2>Evidence and curation</h2><div class="body">${detail(sel)}</div></div></div>`;
 }
